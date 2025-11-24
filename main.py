@@ -1,6 +1,9 @@
 """
-Library Management System - Main Entry Point
-Interactive command-line interface for the library system.
+Sistema de Gestión de Bibliotecas - Punto de Entrada Principal
+Interfaz de línea de comandos interactiva para el sistema de biblioteca.
+
+Este archivo contiene la interfaz de usuario principal que permite interactuar
+con todas las funcionalidades del sistema de gestión de bibliotecas.
 """
 
 from library_manager import LibraryManager
@@ -8,7 +11,10 @@ import os
 
 
 def print_menu():
-    """Print the main menu."""
+    """
+    Imprime el menú principal del sistema.
+    Muestra todas las opciones disponibles para el usuario.
+    """
     print("\n" + "=" * 80)
     print("SISTEMA DE GESTIÓN DE BIBLIOTECAS (SGB)")
     print("=" * 80)
@@ -32,7 +38,15 @@ def print_menu():
 
 
 def book_management_menu(manager: LibraryManager):
-    """Book CRUD operations menu."""
+    """
+    Menú de gestión de libros (CRUD).
+    
+    Permite realizar todas las operaciones CRUD sobre los libros:
+    - Create: Agregar nuevos libros
+    - Read: Buscar y listar libros
+    - Update: Actualizar información de libros
+    - Delete: Eliminar libros del sistema
+    """
     while True:
         print("\n--- GESTIÓN DE LIBROS ---")
         print("1. Agregar Libro")
@@ -115,7 +129,15 @@ def book_management_menu(manager: LibraryManager):
 
 
 def user_management_menu(manager: LibraryManager):
-    """User CRUD operations menu."""
+    """
+    Menú de gestión de usuarios (CRUD).
+    
+    Permite realizar todas las operaciones CRUD sobre los usuarios:
+    - Create: Agregar nuevos usuarios
+    - Read: Buscar y listar usuarios
+    - Update: Actualizar información de usuarios
+    - Delete: Eliminar usuarios del sistema
+    """
     while True:
         print("\n--- GESTIÓN DE USUARIOS ---")
         print("1. Agregar Usuario")
@@ -186,7 +208,15 @@ def user_management_menu(manager: LibraryManager):
 
 
 def shelf_management_menu(manager: LibraryManager):
-    """Shelf CRUD operations menu."""
+    """
+    Menú de gestión de estanterías (CRUD).
+    
+    Permite realizar todas las operaciones CRUD sobre las estanterías:
+    - Create: Agregar nuevas estanterías
+    - Read: Buscar y listar estanterías
+    - Update: Actualizar capacidad de estanterías
+    - Delete: Eliminar estanterías del sistema
+    """
     while True:
         print("\n--- GESTIÓN DE ESTANTERÍAS ---")
         print("1. Agregar Estantería")
@@ -250,7 +280,13 @@ def shelf_management_menu(manager: LibraryManager):
 
 
 def shelf_module_menu(manager: LibraryManager):
-    """Shelf algorithms menu."""
+    """
+    Menú del módulo de estantería.
+    
+    Implementa los algoritmos de resolución de problemas:
+    1. Fuerza Bruta: Encuentra todas las combinaciones de 4 libros que exceden el peso máximo
+    2. Backtracking: Encuentra la combinación óptima que maximiza el valor sin exceder el peso
+    """
     print("\n--- MÓDULO DE ESTANTERÍA ---")
     print("1. Encontrar Combinaciones Riesgosas (Fuerza Bruta)")
     print("2. Encontrar Asignación Óptima de Estantería (Backtracking)")
@@ -287,7 +323,13 @@ def shelf_module_menu(manager: LibraryManager):
 
 
 def recursion_module_menu(manager: LibraryManager):
-    """Recursion algorithms menu."""
+    """
+    Menú del módulo de recursión.
+    
+    Implementa funciones recursivas para calcular estadísticas por autor:
+    1. Recursión de Pila: Calcula el valor total de libros de un autor
+    2. Recursión de Cola: Calcula el peso promedio de libros de un autor
+    """
     print("\n--- MÓDULO DE RECURSIÓN ---")
     author = input("Ingrese el nombre del autor: ").strip()
     
@@ -310,10 +352,19 @@ def recursion_module_menu(manager: LibraryManager):
 
 
 def main():
-    """Main function to run the library management system."""
+    """
+    Función principal que ejecuta el sistema de gestión de bibliotecas.
+    
+    Esta función:
+    1. Inicializa el gestor de biblioteca
+    2. Intenta cargar datos guardados previamente
+    3. Intenta cargar el inventario inicial desde archivos CSV o JSON
+    4. Muestra el menú principal y maneja todas las opciones del usuario
+    """
+    # Inicializar el gestor de biblioteca (contiene toda la lógica del sistema)
     manager = LibraryManager()
     
-    # Try to load existing data
+    # Intentar cargar datos guardados previamente (préstamos, reservas, etc.)
     if os.path.exists("data"):
         try:
             manager.load_data()
@@ -323,7 +374,8 @@ def main():
     print("¡Bienvenido al Sistema de Gestión de Bibliotecas!")
     print("Cargando datos iniciales...")
     
-    # Try to load initial inventory if it exists
+    # Intentar cargar el inventario inicial desde archivos de datos
+    # Primero intenta CSV, si no existe, intenta JSON
     if os.path.exists("data/initial_books.csv"):
         try:
             count = manager.load_initial_inventory("data/initial_books.csv", "csv")
@@ -337,25 +389,31 @@ def main():
         except:
             pass
     
+    # Bucle principal del programa - se ejecuta hasta que el usuario elija salir
     while True:
         print_menu()
-        choice = input("\nSelect an option: ").strip()
+        choice = input("\nSeleccione una opción: ").strip()
         
+        # Opción 1: Cargar inventario inicial desde archivo CSV o JSON
         if choice == '1':
             filepath = input("Ingrese la ruta del archivo (CSV o JSON): ").strip()
             file_format = 'json' if filepath.endswith('.json') else 'csv'
             count = manager.load_initial_inventory(filepath, file_format)
             print(f"Se cargaron {count} libros.")
         
+        # Opción 2: Menú de gestión de libros (CRUD completo)
         elif choice == '2':
             book_management_menu(manager)
         
+        # Opción 3: Menú de gestión de usuarios (CRUD completo)
         elif choice == '3':
             user_management_menu(manager)
         
+        # Opción 4: Menú de gestión de estanterías (CRUD completo)
         elif choice == '4':
             shelf_management_menu(manager)
         
+        # Opción 5: Prestar un libro (usa Stack para historial - LIFO)
         elif choice == '5':
             user_id = input("ID de Usuario: ").strip()
             isbn = input("ISBN: ").strip()
@@ -364,6 +422,7 @@ def main():
             else:
                 print("Error: No se pudo prestar el libro.")
         
+        # Opción 6: Devolver un libro (usa Binary Search para verificar reservas)
         elif choice == '6':
             user_id = input("ID de Usuario: ").strip()
             isbn = input("ISBN: ").strip()
@@ -372,6 +431,7 @@ def main():
             else:
                 print("Error: No se pudo devolver el libro.")
         
+        # Opción 7: Reservar un libro (usa Queue - FIFO, solo si stock = 0)
         elif choice == '7':
             user_id = input("ID de Usuario: ").strip()
             isbn = input("ISBN: ").strip()
@@ -380,6 +440,7 @@ def main():
             else:
                 print("Error: No se pudo reservar el libro (el libro debe tener stock = 0).")
         
+        # Opción 8: Buscar libros (usa Linear Search en inventario general)
         elif choice == '8':
             query = input("Consulta de búsqueda: ").strip()
             search_by = input("Buscar por (título/autor, por defecto: título): ").strip() or "title"
@@ -388,6 +449,7 @@ def main():
             for i, book in enumerate(results, 1):
                 print(f"{i}. {book}")
         
+        # Opción 9: Ver historial de préstamos (muestra Stack - LIFO, más reciente primero)
         elif choice == '9':
             user_id = input("ID de Usuario: ").strip()
             history = manager.get_user_loan_history(user_id)
@@ -398,6 +460,7 @@ def main():
             else:
                 print("No se encontró historial de préstamos.")
         
+        # Opción 10: Ver reservas (muestra Queue - FIFO, primero en la fila primero)
         elif choice == '10':
             isbn = input("ISBN: ").strip()
             reservations = manager.get_reservations(isbn)
@@ -408,12 +471,15 @@ def main():
             else:
                 print("No se encontraron reservas.")
         
+        # Opción 11: Módulo de estantería (Fuerza Bruta y Backtracking)
         elif choice == '11':
             shelf_module_menu(manager)
         
+        # Opción 12: Módulo de recursión (Recursión de Pila y Cola)
         elif choice == '12':
             recursion_module_menu(manager)
         
+        # Opción 13: Generar reporte global (usa Merge Sort ordenado por valor)
         elif choice == '13':
             report = manager.generate_global_inventory_report()
             print(report)
@@ -421,12 +487,15 @@ def main():
             if save == 's' or save == 'y':
                 manager.save_global_report()
         
+        # Opción 14: Guardar todos los datos en archivos JSON
         elif choice == '14':
             manager.save_data()
         
+        # Opción 15: Cargar todos los datos desde archivos JSON
         elif choice == '15':
             manager.load_data()
         
+        # Opción 0: Salir del programa
         elif choice == '0':
             save = input("\n¿Guardar datos antes de salir? (s/n): ").strip().lower()
             if save == 's' or save == 'y':
@@ -434,6 +503,7 @@ def main():
             print("¡Hasta luego!")
             break
         
+        # Opción inválida
         else:
             print("Opción inválida. Por favor intente de nuevo.")
 

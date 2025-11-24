@@ -25,41 +25,58 @@ from utils.file_handler import (
 
 class LibraryManager:
     """
-    Main Library Management System class.
-    Manages books, users, shelves, loans, and reservations.
+    Clase principal del Sistema de Gestión de Bibliotecas.
+    
+    Esta clase gestiona todos los aspectos del sistema:
+    - Libros: Inventario general (desordenado) e inventario ordenado (por ISBN)
+    - Usuarios: Registro y gestión de usuarios
+    - Estanterías: Gestión de estanterías y asignación de libros
+    - Préstamos: Historial usando Stack (Pila - LIFO)
+    - Reservas: Lista de espera usando Queue (Cola - FIFO)
     """
     
     def __init__(self):
-        """Initialize the Library Management System."""
-        # Two master lists as required
-        self.general_inventory = []  # Unordered list (order of loading)
-        self.ordered_inventory = []  # Always sorted by ISBN (ascending)
+        """
+        Inicializa el Sistema de Gestión de Bibliotecas.
         
-        # Data structures
-        self.loan_history = {}  # Dict[user_id, Stack] - LIFO for loan history
-        self.reservations = {}  # Dict[isbn, Queue] - FIFO for reservations
+        Crea todas las estructuras de datos necesarias:
+        - Dos listas maestras de libros (requerimiento del proyecto)
+        - Estructuras de datos: Stack para préstamos, Queue para reservas
+        - Diccionarios para usuarios y estanterías
+        """
+        # REQUERIMIENTO: Dos listas maestras de libros
+        self.general_inventory = []  # Lista desordenada (refleja el orden de carga)
+        self.ordered_inventory = []  # Lista siempre ordenada por ISBN (ascendente)
         
-        # Additional management
-        self.users = {}  # Dict[user_id, User]
-        self.shelves = {}  # Dict[shelf_id, Shelf]
+        # Estructuras de datos requeridas
+        self.loan_history = {}  # Dict[user_id, Stack] - Pila LIFO para historial de préstamos
+        self.reservations = {}  # Dict[isbn, Queue] - Cola FIFO para reservas
         
-        # File paths
+        # Gestión adicional (CRUD requerido)
+        self.users = {}  # Dict[user_id, User] - Almacena todos los usuarios
+        self.shelves = {}  # Dict[shelf_id, Shelf] - Almacena todas las estanterías
+        
+        # Rutas de archivos para persistencia de datos
         self.books_file = "data/books.json"
         self.loan_history_file = "data/loan_history.json"
         self.reservations_file = "data/reservations.json"
     
-    # ==================== DATA ACQUISITION ====================
+    # ==================== ADQUISICIÓN DE DATOS ====================
+    # REQUERIMIENTO: El sistema debe cargar inventario desde archivos CSV o JSON
     
     def load_initial_inventory(self, filepath: str, file_format: str = 'json') -> int:
         """
-        Load initial inventory from CSV or JSON file.
+        Carga el inventario inicial desde un archivo CSV o JSON.
+        
+        REQUERIMIENTO: Debe leer archivos con al menos 5 atributos por libro:
+        ISBN, Título, Autor, Peso (Kg), Valor (COP)
         
         Args:
-            filepath (str): Path to the data file
-            file_format (str, optional): File format ('csv' or 'json'). Defaults to 'json'.
+            filepath (str): Ruta al archivo de datos
+            file_format (str, optional): Formato del archivo ('csv' o 'json'). Defaults to 'json'.
             
         Returns:
-            int: Number of books loaded
+            int: Número de libros cargados
         """
         try:
             if file_format.lower() == 'csv':
@@ -117,34 +134,38 @@ class LibraryManager:
         except Exception as e:
             print(f"Error cargando datos: {e}")
     
-    # ==================== BOOK MANAGEMENT (CRUD) ====================
+    # ==================== GESTIÓN DE LIBROS (CRUD) ====================
+    # REQUERIMIENTO: CRUD completo para libros (Create, Read, Update, Delete)
     
     def add_book(self, isbn: str, title: str, author: str, weight: float, 
                  value: float, stock: int = 1) -> bool:
         """
-        Add a new book to the system.
+        Agrega un nuevo libro al sistema.
+        
+        REQUERIMIENTO: Usa Insertion Sort para mantener el Inventario Ordenado
+        siempre ordenado por ISBN cada vez que se agrega un libro.
         
         Args:
-            isbn (str): ISBN of the book
-            title (str): Title of the book
-            author (str): Author of the book
-            weight (float): Weight in kilograms
-            value (float): Value in Colombian pesos
-            stock (int, optional): Initial stock. Defaults to 1.
+            isbn (str): ISBN del libro
+            title (str): Título del libro
+            author (str): Autor del libro
+            weight (float): Peso en kilogramos
+            value (float): Valor en pesos colombianos (COP)
+            stock (int, optional): Stock inicial. Defaults to 1.
             
         Returns:
-            bool: True if book was added, False if ISBN already exists
+            bool: True si el libro fue agregado, False si el ISBN ya existe
         """
-        # Check if book already exists
+        # Verificar si el libro ya existe usando Binary Search
         if binary_search(self.ordered_inventory, isbn) != -1:
             return False
         
         book = Book(isbn, title, author, weight, value, stock)
         
-        # Add to general inventory (unordered)
+        # Agregar al inventario general (desordenado - refleja orden de carga)
         self.general_inventory.append(book)
         
-        # Add to ordered inventory and maintain sort using insertion sort
+        # REQUERIMIENTO: Agregar al inventario ordenado y mantener ordenado con Insertion Sort
         self.ordered_inventory.append(book)
         self.ordered_inventory = insertion_sort(self.ordered_inventory)
         
@@ -152,13 +173,16 @@ class LibraryManager:
     
     def get_book_by_isbn(self, isbn: str) -> Optional[Book]:
         """
-        Get a book by ISBN using binary search.
+        Obtiene un libro por ISBN usando búsqueda binaria.
+        
+        REQUERIMIENTO CRÍTICO: Binary Search se usa para verificar reservas
+        cuando se devuelve un libro.
         
         Args:
-            isbn (str): ISBN to search for
+            isbn (str): ISBN a buscar
             
         Returns:
-            Optional[Book]: Book object if found, None otherwise
+            Optional[Book]: Objeto Book si se encuentra, None en caso contrario
         """
         index = binary_search(self.ordered_inventory, isbn)
         if index != -1:
@@ -167,14 +191,17 @@ class LibraryManager:
     
     def search_books(self, query: str, search_by: str = 'title') -> List[Book]:
         """
-        Search books by title or author using linear search.
+        Busca libros por título o autor usando búsqueda lineal.
+        
+        REQUERIMIENTO: Linear Search se usa en el Inventario General (desordenado)
+        para buscar por Título o Autor.
         
         Args:
-            query (str): Search query
-            search_by (str, optional): 'title' or 'author'. Defaults to 'title'.
+            query (str): Consulta de búsqueda
+            search_by (str, optional): 'title' o 'author'. Defaults to 'title'.
             
         Returns:
-            List[Book]: List of matching books
+            List[Book]: Lista de libros que coinciden
         """
         return linear_search(self.general_inventory, query, search_by)
     
@@ -419,32 +446,37 @@ class LibraryManager:
         """
         return list(self.shelves.values())
     
-    # ==================== LOAN MANAGEMENT ====================
+    # ==================== GESTIÓN DE PRÉSTAMOS ====================
+    # REQUERIMIENTO: Historial de préstamos usando Stack (Pila - LIFO)
     
     def loan_book(self, user_id: str, isbn: str) -> bool:
         """
-        Loan a book to a user.
+        Presta un libro a un usuario.
+        
+        REQUERIMIENTO: Al prestar un libro, se apila el ISBN y la fecha de préstamo
+        en el historial del usuario usando Stack (LIFO - Last In, First Out).
+        El historial se almacena en archivo y puede ser cargado posteriormente.
         
         Args:
-            user_id (str): User identifier
-            isbn (str): ISBN of the book to loan
+            user_id (str): Identificador del usuario
+            isbn (str): ISBN del libro a prestar
             
         Returns:
-            bool: True if loan was successful, False otherwise
+            bool: True si el préstamo fue exitoso, False en caso contrario
         """
-        # Check if user exists
+        # Verificar si el usuario existe
         if user_id not in self.users:
             return False
         
-        # Get book
+        # Obtener el libro
         book = self.get_book_by_isbn(isbn)
         if not book or book.stock <= 0:
             return False
         
-        # Decrease stock
+        # Disminuir el stock
         book.stock -= 1
         
-        # Add to loan history (Stack - LIFO)
+        # REQUERIMIENTO: Agregar al historial usando Stack (Pila - LIFO)
         if user_id not in self.loan_history:
             self.loan_history[user_id] = Stack()
         
@@ -453,43 +485,47 @@ class LibraryManager:
             'date': datetime.now().isoformat(),
             'title': book.title
         }
-        self.loan_history[user_id].push(loan_record)
+        self.loan_history[user_id].push(loan_record)  # Push en la pila
         
         return True
     
     def return_book(self, user_id: str, isbn: str) -> bool:
         """
-        Return a book from a user.
-        CRITICAL: Uses binary search to check for pending reservations.
+        Devuelve un libro de un usuario.
+        
+        REQUERIMIENTO CRÍTICO: Usa Binary Search para verificar si un libro devuelto
+        tiene reservas pendientes en la Cola de Espera. Si es así, debe asignarse
+        automáticamente a la persona que ha solicitado la reserva según la prioridad (FIFO).
         
         Args:
-            user_id (str): User identifier
-            isbn (str): ISBN of the book to return
+            user_id (str): Identificador del usuario
+            isbn (str): ISBN del libro a devolver
             
         Returns:
-            bool: True if return was successful, False otherwise
+            bool: True si la devolución fue exitosa, False en caso contrario
         """
-        # Check if user exists and has loan history
+        # Verificar si el usuario existe y tiene historial de préstamos
         if user_id not in self.loan_history:
             return False
         
-        # Find book using binary search (CRITICAL requirement)
+        # REQUERIMIENTO CRÍTICO: Buscar libro usando Binary Search
         index = binary_search(self.ordered_inventory, isbn)
         if index == -1:
             return False
         
         book = self.ordered_inventory[index]
         
-        # Increase stock
+        # Aumentar el stock
         book.stock += 1
         
-        # Check for pending reservations (CRITICAL requirement)
+        # REQUERIMIENTO CRÍTICO: Verificar reservas pendientes usando Binary Search
+        # Si hay reservas, asignar automáticamente según prioridad FIFO
         if isbn in self.reservations and not self.reservations[isbn].is_empty():
-            # Assign to first person in queue (FIFO)
+            # Asignar a la primera persona en la cola (FIFO - First In, First Out)
             reservation = self.reservations[isbn].dequeue()
             reserved_user_id = reservation['user_id']
             
-            # Automatically loan to reserved user
+            # Prestar automáticamente al usuario reservado
             self.loan_book(reserved_user_id, isbn)
             print(f"Libro {isbn} asignado automáticamente al usuario reservado {reserved_user_id}")
         
@@ -511,34 +547,38 @@ class LibraryManager:
         # Convert stack to list (most recent at end)
         return self.loan_history[user_id].to_list()
     
-    # ==================== RESERVATION MANAGEMENT ====================
+    # ==================== GESTIÓN DE RESERVAS ====================
+    # REQUERIMIENTO: Lista de espera usando Queue (Cola - FIFO)
     
     def reserve_book(self, user_id: str, isbn: str) -> bool:
         """
-        Reserve a book (only if stock is zero).
-        Uses Queue (FIFO) for waiting list.
+        Reserva un libro (solo si el stock es cero).
+        
+        REQUERIMIENTO: Implementa la Lista de Espera para libros agotados como una Cola (FIFO).
+        Solo se puede encolar un usuario para reserva si el libro tiene stock cero.
+        Las solicitudes de reservas se almacenan en un archivo y pueden ser cargadas posteriormente.
         
         Args:
-            user_id (str): User identifier
-            isbn (str): ISBN of the book to reserve
+            user_id (str): Identificador del usuario
+            isbn (str): ISBN del libro a reservar
             
         Returns:
-            bool: True if reservation was successful, False otherwise
+            bool: True si la reserva fue exitosa, False en caso contrario
         """
-        # Check if user exists
+        # Verificar si el usuario existe
         if user_id not in self.users:
             return False
         
-        # Get book
+        # Obtener el libro
         book = self.get_book_by_isbn(isbn)
         if not book:
             return False
         
-        # Only allow reservation if stock is zero
+        # REQUERIMIENTO: Solo permitir reserva si el stock es cero
         if book.stock > 0:
             return False
         
-        # Add to reservation queue (FIFO)
+        # REQUERIMIENTO: Agregar a la cola de reservas (FIFO - First In, First Out)
         if isbn not in self.reservations:
             self.reservations[isbn] = Queue()
         
@@ -547,7 +587,7 @@ class LibraryManager:
             'isbn': isbn,
             'date': datetime.now().isoformat()
         }
-        self.reservations[isbn].enqueue(reservation)
+        self.reservations[isbn].enqueue(reservation)  # Encolar en la cola
         
         return True
     
@@ -566,70 +606,95 @@ class LibraryManager:
         
         return self.reservations[isbn].to_list()
     
-    # ==================== SHELF MODULE ====================
+    # ==================== MÓDULO DE ESTANTERÍA ====================
+    # REQUERIMIENTO: Algoritmos de resolución de problemas (Fuerza Bruta y Backtracking)
     
     def find_risky_shelf_combinations(self, threshold: float = 8.0) -> List[Tuple]:
         """
-        Find all combinations of 4 books that exceed weight threshold.
-        Uses Brute Force algorithm.
+        Encuentra todas las combinaciones de 4 libros que exceden el umbral de peso.
+        
+        REQUERIMIENTO: Fuerza Bruta (Estantería Deficiente)
+        Implementa un algoritmo que encuentre y liste todas las combinaciones posibles
+        de cuatro libros que, al sumar su peso en Kg, superen un umbral de "riesgo" de 8 Kg
+        (que es lo máximo que soporta un estante de libros).
+        El algoritmo debe explorar exhaustivamente todas las combinaciones.
         
         Args:
-            threshold (float, optional): Weight threshold in kg. Defaults to 8.0.
+            threshold (float, optional): Umbral de peso en kg. Defaults to 8.0.
             
         Returns:
-            List[Tuple]: List of risky combinations
+            List[Tuple]: Lista de combinaciones riesgosas
         """
         return find_risky_combinations(self.general_inventory, threshold)
     
     def find_optimal_shelf_assignment(self, max_capacity: float = 8.0) -> Tuple:
         """
-        Find optimal book combination for a shelf.
-        Uses Backtracking algorithm.
+        Encuentra la combinación óptima de libros para una estantería.
+        
+        REQUERIMIENTO: Backtracking (Estantería Óptima)
+        Implementa un algoritmo que encuentre la combinación de libros que maximice
+        el valor total (COP) sin exceder la capacidad máxima de peso (8 Kg) de un estante.
+        El algoritmo debe demostrar la exploración y su ejecución.
         
         Args:
-            max_capacity (float, optional): Maximum weight capacity. Defaults to 8.0.
+            max_capacity (float, optional): Capacidad máxima de peso. Defaults to 8.0.
             
         Returns:
-            Tuple: (optimal_books, total_value, total_weight)
+            Tuple: (libros_óptimos, valor_total, peso_total)
         """
         return find_optimal_shelf(self.general_inventory, max_capacity)
     
-    # ==================== RECURSION MODULE ====================
+    # ==================== MÓDULO DE RECURSIÓN ====================
+    # REQUERIMIENTO: Recursión de Pila y Recursión de Cola
     
     def get_author_total_value(self, author: str) -> float:
         """
-        Calculate total value of books by an author using Stack Recursion.
+        Calcula el valor total de todos los libros de un autor específico.
+        
+        REQUERIMIENTO: Recursión de Pila
+        Implementa una función recursiva que calcule el Valor Total de todos los libros
+        de un autor específico usando recursión de pila (stack recursion).
         
         Args:
-            author (str): Author name
+            author (str): Nombre del autor
             
         Returns:
-            float: Total value in Colombian pesos
+            float: Valor total en pesos colombianos
         """
         return calculate_author_total_value(self.general_inventory, author)
     
     def get_author_average_weight(self, author: str) -> float:
         """
-        Calculate average weight of books by an author using Tail Recursion.
+        Calcula el peso promedio de la colección de un autor.
+        
+        REQUERIMIENTO: Recursión de Cola
+        Implementa una función recursiva que calcule el Peso Promedio de la colección
+        de un autor, demostrando la lógica de la recursión de cola (tail recursion) por consola.
         
         Args:
-            author (str): Author name
+            author (str): Nombre del autor
             
         Returns:
-            float: Average weight in kilograms
+            float: Peso promedio en kilogramos
         """
         return calculate_author_average_weight(self.general_inventory, author)
     
-    # ==================== REPORTS ====================
+    # ==================== REPORTES ====================
+    # REQUERIMIENTO: Reporte Global ordenado por valor usando Merge Sort
     
     def generate_global_inventory_report(self) -> str:
         """
-        Generate global inventory report sorted by value using Merge Sort.
+        Genera un reporte global de inventario ordenado por valor.
+        
+        REQUERIMIENTO: Ordenamiento por Mezcla (Merge Sort)
+        Este algoritmo debe usarse para generar un Reporte Global de inventario,
+        ordenado por el atributo Valor (COP). El reporte generado también debe
+        poder almacenarse en un archivo.
         
         Returns:
-            str: Formatted report
+            str: Reporte formateado
         """
-        # Sort by value using Merge Sort
+        # REQUERIMIENTO: Ordenar por valor usando Merge Sort
         sorted_books = merge_sort(self.general_inventory, key=lambda x: x.value)
         
         report = "=" * 80 + "\n"
