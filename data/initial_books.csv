@@ -1,0 +1,27 @@
+ISBN,Title,Author,Weight,Value,Stock
+978-0-123456-78-9,The Great Gatsby,F. Scott Fitzgerald,0.45,45000,3
+978-0-234567-89-0,To Kill a Mockingbird,Harper Lee,0.52,38000,2
+978-0-345678-90-1,1984,George Orwell,0.48,42000,4
+978-0-456789-01-2,Pride and Prejudice,Jane Austen,0.55,35000,2
+978-0-567890-12-3,The Catcher in the Rye,J.D. Salinger,0.42,40000,3
+978-0-678901-23-4,Lord of the Flies,William Golding,0.38,36000,2
+978-0-789012-34-5,Animal Farm,George Orwell,0.35,28000,5
+978-0-890123-45-6,Brave New World,Aldous Huxley,0.50,44000,2
+978-0-901234-56-7,The Hobbit,J.R.R. Tolkien,0.65,55000,3
+978-1-012345-67-8,The Lord of the Rings,J.R.R. Tolkien,1.20,95000,2
+978-1-123456-78-9,Harry Potter and the Philosopher's Stone,J.K. Rowling,0.58,48000,4
+978-1-234567-89-0,The Chronicles of Narnia,C.S. Lewis,0.72,62000,2
+978-1-345678-90-1,The Alchemist,Paulo Coelho,0.40,39000,3
+978-1-456789-01-2,One Hundred Years of Solitude,Gabriel García Márquez,0.68,58000,2
+978-1-567890-12-3,Don Quixote,Miguel de Cervantes,0.85,75000,1
+978-1-678901-23-4,War and Peace,Leo Tolstoy,1.15,88000,1
+978-1-789012-34-5,Crime and Punishment,Fyodor Dostoevsky,0.75,65000,2
+978-1-890123-45-6,The Brothers Karamazov,Fyodor Dostoevsky,0.82,72000,1
+978-1-901234-56-7,Anna Karenina,Leo Tolstoy,0.95,82000,1
+978-2-012345-67-8,The Picture of Dorian Gray,Oscar Wilde,0.45,41000,3
+978-2-123456-78-9,Frankenstein,Mary Shelley,0.50,43000,2
+978-2-234567-89-0,Dracula,Bram Stoker,0.55,47000,2
+978-2-345678-90-1,The Count of Monte Cristo,Alexandre Dumas,0.90,78000,1
+978-2-456789-01-2,Les Misérables,Victor Hugo,1.10,92000,1
+978-2-567890-12-3,The Three Musketeers,Alexandre Dumas,0.70,68000,2
+
